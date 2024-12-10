@@ -25,6 +25,9 @@ Welcome to my Music Player App! Here's what you can do with it:
    - Edit playlists by adding or removing songs.
    - Play entire playlists with one tap.
 
+## Images
+
+
 ## License
 
 This project is open source under the [MIT License](LICENSE).
