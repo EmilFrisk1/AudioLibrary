@@ -26,11 +26,8 @@ Welcome to my Music Player App! Here's what you can do with it:
    - Play entire playlists with one tap.
 
 ## Images
-**Home Page**
 ![App Screenshot](homePage.jpg)
-**Playlist Page**
 ![App Screenshot](playlist.jpg)
-**Playlist Song Page**
 ![App Screenshot](playlistSong.jpg)
 
 ## License
