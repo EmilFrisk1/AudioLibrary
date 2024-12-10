@@ -29,6 +29,7 @@ Welcome to my Music Player App! Here's what you can do with it:
 ![App Screenshot](homePage.jpg)
 ![App Screenshot](playlist.jpg)
 ![App Screenshot](playlistSong.jpg)
+![App Screenshot](audioPlayer.jpg)
 
 ## License
 
