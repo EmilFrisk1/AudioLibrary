@@ -10,7 +10,7 @@ public class DatabaseClient {
 
     private DatabaseClient(Application application) {
         appDatabase = Room.databaseBuilder(application, AppDatabase.class, "song_database")
-                .fallbackToDestructiveMigration() // TODO - poista tämä myöhemmin
+                .fallbackToDestructiveMigration()
                 .build();
     }
 
