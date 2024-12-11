@@ -108,6 +108,12 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
             cleanUpMediaPlayer();
         }
 
+        if (playlistPlaying) {
+            currentPlaylistSong = null;
+            playlistPlaying = false;
+            playlistSongs = null;
+        }
+
         currentFragmentName = fragmentName;
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("audio/*");
@@ -122,6 +128,13 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
             hideMediaPlayer();
             cleanUpMediaPlayer();
         }
+
+        if (playlistPlaying) {
+            currentPlaylistSong = null;
+            playlistPlaying = false;
+            playlistSongs = null;
+        }
+
         currentUri = song.getAudioUri();
         currentSongId = song.getAudioId();
         currentSongName = getFileName(currentUri);
@@ -146,6 +159,8 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
                                 currentSongName = getFileName(currentUri);
 
                                 if (currentFragmentName.equals("HOME_FRAGMENT")) {
+
+
                                     recentSongRepo.checkLatestOverlap(currentUri.toString(), new SongRepository.LatestSongOverlap() {
                                         @Override
                                         public void onOverlapResult(int result) {
