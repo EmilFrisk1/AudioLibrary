@@ -16,11 +16,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class PlaylistDetailsFragment extends Fragment implements MainActivity.OnSongInsertionListener, PlaylistDetailsAdapter.OnPlaylistSongInteraction {
     private static final String ARG_PLAYLIST_ID = "playlist_id";
@@ -37,6 +39,7 @@ public class PlaylistDetailsFragment extends Fragment implements MainActivity.On
     private Button addAudioBtn;
     private HomeFragment.OnAudioSystemInteraction mListener;
     private AudioPlayerInterface.AudioPlayerI audioPlayerListener;
+    private ImageButton shuffleIcon;
 
     @Override
     public void onPlaylistSongClickHold(Song song) {
@@ -115,9 +118,40 @@ public class PlaylistDetailsFragment extends Fragment implements MainActivity.On
         return fragment;
     }
 
+    private void shufflePlaylist() {
+        if (songList != null) {
+            Random rand = new Random();
+            List<Integer> newSongOrderPositions = new ArrayList<>();
+            int songListSize = songList.size();
+
+            for (int i = 0; i < songListSize; i++) {
+                Boolean newUniquePostion = false;
+                while (!newUniquePostion) {
+                    int randomNum = rand.nextInt(songListSize);
+                    if (!newSongOrderPositions.contains(randomNum)) {
+                        newSongOrderPositions.add(randomNum);
+                        break;
+                    }
+                }
+            }
+
+            List<Song> shuffledSongs = new ArrayList<>();
+
+            for (int position : newSongOrderPositions) {
+                shuffledSongs.add(songList.get(position));
+            }
+            songList.clear();
+            songList.addAll(shuffledSongs);
+            adapter.notifyDataSetChanged();
+        }
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+
         if (getArguments() != null) {
             playlistId = getArguments().getInt(ARG_PLAYLIST_ID);
             playlistName = getArguments().getString(ARG_PLAYLIST_NAME);
@@ -139,6 +173,8 @@ public class PlaylistDetailsFragment extends Fragment implements MainActivity.On
 
         playlistDetailsHolder = view.findViewById(R.id.playlistDetailsHolder);
         playlistDetailsTxtView = view.findViewById(R.id.playlistDetailsTxtView);
+        shuffleIcon = view.findViewById(R.id.playlistShuffleIcon);
+
         addAudioBtn = view.findViewById(R.id.addAudioBtn);
 
         playlistDetailsHolder.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -147,7 +183,6 @@ public class PlaylistDetailsFragment extends Fragment implements MainActivity.On
         playlistDetailsTxtView.setText(playlistDetailsTxtView.getText() + playlistName);
         playlistDao = DatabaseClient.getInstance(requireActivity().getApplication()).getAppDatabase().playlistDao();
 
-
         addAudioBtn.setOnClickListener(v -> {
             mListener.onSelectAudioFile("PLAYLIST_DETAILS_FRAGMENT");
         });
@@ -155,6 +190,10 @@ public class PlaylistDetailsFragment extends Fragment implements MainActivity.On
         if (songList.size() < 1) {
             fetchSongsForPlaylist(playlistId);
         }
+
+        shuffleIcon.setOnClickListener(v -> {
+            shufflePlaylist();
+        });
     }
 
     private void fetchSongsForPlaylist(int playlistId) {

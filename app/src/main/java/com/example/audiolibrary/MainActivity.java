@@ -44,6 +44,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+
 import android.Manifest;
 //import android.content;
 
@@ -84,11 +86,16 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
         void OnSongInserted(Song song);
     }
 
+
+
     @Override
     public void onPlayAudio(Song song, List<Song> songList) {
         currentPlaylistSong = song;
         playlistPlaying = true;
         playlistSongs = songList;
+
+
+
         if (mediaPlayer != null) {
             hideMediaPlayer();
             cleanUpMediaPlayer();
