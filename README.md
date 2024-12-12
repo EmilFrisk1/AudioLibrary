@@ -11,7 +11,8 @@ Welcome to my Music Player App! Here's what you can do with it:
 - **Create Playlists**: Organize your music the way you like.
   - Add, remove, and manage songs within playlists.
   - Save your custom playlists for later enjoyment.
-  - 
+  - Shuffle playlist functionality
+  - Previous and next playlist song buttons
 - **Listen music while the app is on the background**
 
 ## How to Use
