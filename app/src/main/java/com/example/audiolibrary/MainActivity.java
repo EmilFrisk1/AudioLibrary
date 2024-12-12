@@ -62,6 +62,8 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
     private ImageButton playButton;
     private ImageButton pauseButton;
     private ImageButton closeButton;
+    private ImageButton nextSongIcon;
+    private ImageButton previousSongIcon;
     private TextView songNameTextView;
     private Uri currentUri;
     private int currentSongId;
@@ -81,20 +83,17 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
     private Song currentPlaylistSong;
     private PlaylistDao playlistDao;
     private PlaylistDatabaseOperations playlistOperations;
+    private int currentPlaylistSongIndex = -1;
 
     public interface OnSongInsertionListener {
         void OnSongInserted(Song song);
     }
-
-
 
     @Override
     public void onPlayAudio(Song song, List<Song> songList) {
         currentPlaylistSong = song;
         playlistPlaying = true;
         playlistSongs = songList;
-
-
 
         if (mediaPlayer != null) {
             hideMediaPlayer();
@@ -116,9 +115,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
         }
 
         if (playlistPlaying) {
-            currentPlaylistSong = null;
-            playlistPlaying = false;
-            playlistSongs = null;
+            resetPlaylistValues();
         }
 
         currentFragmentName = fragmentName;
@@ -137,9 +134,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
         }
 
         if (playlistPlaying) {
-            currentPlaylistSong = null;
-            playlistPlaying = false;
-            playlistSongs = null;
+            resetPlaylistValues();
         }
 
         currentUri = song.getAudioUri();
@@ -264,6 +259,8 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
         playButton = findViewById(R.id.playButton);
         pauseButton = findViewById(R.id.pauseButton);
         closeButton = findViewById(R.id.closeButton);
+        nextSongIcon = findViewById(R.id.nextSongIcon);
+        previousSongIcon = findViewById(R.id.previousSongIcon);
     }
 
     @Override
@@ -364,6 +361,37 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
         return null;
     }
 
+    private boolean playlistHasNextSong() {
+        if (playlistSongs == null) return false;
+
+        int playlistSize = playlistSongs.size();
+        int currentSongIndex = -1;
+        for (int i = 0; i < playlistSize; i++) {
+            if (playlistSongs.get(i).getId() == currentPlaylistSong.getId()) {
+                currentSongIndex = i;
+                break;
+            }
+        }
+
+        currentPlaylistSongIndex = currentSongIndex;
+        return (currentSongIndex + 1) != playlistSize;
+    }
+
+    private boolean playlistHasPreviousSong() {
+        if (playlistSongs == null) return false;
+
+        int playlistSize = playlistSongs.size();
+        int currentSongIndex = -1;
+        for (int i = 0; i < playlistSize; i++) {
+            if (playlistSongs.get(i).getId() == currentPlaylistSong.getId()) {
+                currentSongIndex = i;
+                break;
+            }
+        }
+
+        return (currentSongIndex) != 0;
+    }
+
     private void playAudio() {
         if (currentUri == null) {
             return;
@@ -418,27 +446,11 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
                     @Override
                     public void onCompletion(MediaPlayer mp) {
                         if (playlistPlaying) {
-                            int playlistSize = playlistSongs.size();
-                            int currentSongIndex = -1;
-                            for (int i = 0; i < playlistSize; i++) {
-                                if (playlistSongs.get(i).getId() == currentPlaylistSong.getId()) {
-                                    currentSongIndex = i;
-                                    break;
-                                }
-                            }
-
-                            if ((currentSongIndex + 1) == playlistSize) { // last song
-                                playlistPlaying = false;
-                                currentPlaylistSong = null;
-                                playlistSongs = null;
+                            if (!playlistHasNextSong()) {
+                                resetPlaylistValues();
                                 cleanUpMediaPlayer();
                             } else {
-                                cleanUpMediaPlayer();
-                                currentPlaylistSong = playlistSongs.get(currentSongIndex + 1);
-                                currentUri = Uri.parse(currentPlaylistSong.getSongUri());
-                                currentSongId = currentPlaylistSong.getId();
-                                currentSongName = getFileName(currentUri);
-                                playAudio();
+                                playNextPlaylistSong();
                             }
                         } else {
                             cleanUpMediaPlayer();
@@ -512,6 +524,8 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
         playButton.setVisibility(View.GONE);
         pauseButton.setVisibility(View.GONE);
         closeButton.setVisibility(View.INVISIBLE);
+        nextSongIcon.setVisibility(View.GONE);
+        previousSongIcon.setVisibility(View.GONE);
     }
 
     private void showMediaPlayer() {
@@ -521,6 +535,8 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
         mediaPlayerBg.setVisibility(View.VISIBLE);
         pauseButton.setVisibility(View.VISIBLE);
         closeButton.setVisibility(View.VISIBLE);
+        if (playlistHasNextSong()) nextSongIcon.setVisibility(View.VISIBLE);
+        if (playlistHasPreviousSong()) previousSongIcon.setVisibility(View.VISIBLE);
     }
 
     public void pauseButtonClick(View v) {
@@ -549,11 +565,16 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
         getSupportFragmentManager().beginTransaction().replace(R.id.fragmentContainer, homeFragment).addToBackStack(null).commit();
     }
 
+    private void resetPlaylistValues() {
+        playlistSongs = null;
+        currentPlaylistSong = null;
+        playlistPlaying = false;
+        currentPlaylistSongIndex = -1;
+    }
+
     public void closeButtonClick(View v) {
         if (playlistPlaying != null) {
-            playlistSongs = null;
-            currentPlaylistSong = null;
-            playlistPlaying = false;
+            resetPlaylistValues();
         }
         // update progress in the song
         recentSongRepo.updateLatestSong(currentSongId, mediaPlayer.getCurrentPosition(), new SongRepository.SongUpdateCallback() {
@@ -570,5 +591,27 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnAu
 
         hideMediaPlayer();
         cleanUpMediaPlayer();
+    }
+
+    private void playNextPlaylistSong() {
+        cleanUpMediaPlayer();
+        currentPlaylistSong = playlistSongs.get(currentPlaylistSongIndex + 1);
+        currentUri = Uri.parse(currentPlaylistSong.getSongUri());
+        currentSongId = currentPlaylistSong.getId();
+        currentSongName = getFileName(currentUri);
+        playAudio();
+    }
+
+    public void onNextSongClick(View v) {
+        playNextPlaylistSong();
+    }
+
+    public void onPreviousSongClick(View v) {
+        cleanUpMediaPlayer();
+        currentPlaylistSong = playlistSongs.get(currentPlaylistSongIndex - 1);
+        currentUri = Uri.parse(currentPlaylistSong.getSongUri());
+        currentSongId = currentPlaylistSong.getId();
+        currentSongName = getFileName(currentUri);
+        playAudio();
     }
 }
